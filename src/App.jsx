@@ -29,18 +29,6 @@ function App() {
     })
     .wait(10000).close();
 
-
-// JZZ().openMidiIn().or('Cannot open MIDI In port!')
-// .and(function () { console.log('MIDI-In: ', this.name()); })
-// .connect(function (msg) { 
-//   console.log(msg.toString()); 
-  
-//   //console.log(JZZ.MIDI.noteName(msg[1]), msg[0] == 0x90 ? 'pressed' : 'released');
-// })
-// .wait(10000).close();
-
-    
-
   return (
     <>
   

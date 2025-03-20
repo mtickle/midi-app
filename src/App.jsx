@@ -10,7 +10,11 @@ function App() {
   const [midiAccess, setMidiAccess] = useState(null);
   const [messages, setMessages] = useState([]);
   const [noteName, setNoteName] = useState([]);
+  const [noteCount, setNoteCount] = useState([]);
   const [chordType, setChordType] = useState([]);
+  const [chordNotes, setChordNotes] = useState([]);
+  const [chordName, setChordName] = useState([]);
+  const [chordIntervals, setChordIntervals] = useState([]);
 
   useEffect(() => {
     navigator.requestMIDIAccess()
@@ -33,7 +37,7 @@ function App() {
     const velocity = (message.data.length > 2) ? message.data[2] : 0;
 
     //--- Translate and show the actual note name.
-    setNoteName(getMidiNoteName(note));
+    //setNoteName(getMidiNoteName(note));
 
     if (command === 144 && velocity > 0) { // Note on
       noteOn(note);
@@ -47,21 +51,28 @@ function App() {
 
   //--- Handle the note ON event. Add the note to the set and detect the chord.
   function noteOn(note) {
+    setNoteName(getMidiNoteName(note));
     pressedNotes.add(note);
     processChord();
   }
 
   //--- Handle the note OFF event. Remove the note to the set and detect the chord.
   function noteOff(note) {
+    setNoteName("");
     pressedNotes.delete(note);
     processChord();
   }
 
 
   function processChord() {
+
+    setNoteCount(pressedNotes.size);
+
     if (pressedNotes.size != 3) {
       return; // Not enough notes for a chord
     }
+
+    
 
     const notes = Array.from(pressedNotes).sort((a, b) => a - b);
     const intervals = notes.map(note => note % 12); // Get note intervals within an octave
@@ -74,6 +85,10 @@ function App() {
     } else if (intervals.includes(0) && intervals.includes(3) && intervals.includes(7)) {
       chordName = "Minor";
     }
+
+    setChordName(chordName);
+    setChordNotes(notes);
+    setChordIntervals(intervals);
     // Add more chord patterns as needed
 
     console.log("Chord:", chordName, notes);
@@ -138,10 +153,30 @@ function App() {
 
       <div className="card">
       <InputGroup className="mb-3">
-        <InputGroup.Text id="basic-addon1">Note Pressed: </InputGroup.Text>
+        <InputGroup.Text id="basic-addon1">Note pressed: </InputGroup.Text>
         <Form.Control  value={noteName} onChange={setNoteName}/>
       </InputGroup>
-        {/* <Form.Control size="lg" type="text" value={noteName} onChange={setNoteName} placeholder="Large text" /> */}
+
+      <InputGroup className="mb-3">
+        <InputGroup.Text id="basic-addon1">Number of notes pressed: </InputGroup.Text>
+        <Form.Control  value={noteCount} onChange={setNoteCount}/>
+      </InputGroup>
+
+      <InputGroup className="mb-3">
+        <InputGroup.Text id="basic-addon1">Notes in chord: </InputGroup.Text>
+        <Form.Control  value={chordNotes} onChange={setChordNotes}/>
+      </InputGroup>
+
+      <InputGroup className="mb-3">
+        <InputGroup.Text id="basic-addon1">Chord name: </InputGroup.Text>
+        <Form.Control  value={chordName} onChange={setChordName}/>
+      </InputGroup>
+        
+      <InputGroup className="mb-3">
+        <InputGroup.Text id="basic-addon1">Chord intervals: </InputGroup.Text>
+        <Form.Control  value={chordIntervals} onChange={setChordIntervals}/>
+      </InputGroup>
+
       </div>
 
 

@@ -7,6 +7,8 @@ import './App.css'
 
 function App() {
 
+  const [deviceName, setDeviceName] = useState([]);
+  const [deviceManufacturer, setDeviceManufacturer] = useState([]);
   const [midiAccess, setMidiAccess] = useState(null);
   const [messages, setMessages] = useState([]);
   const [noteName, setNoteName] = useState([]);
@@ -17,24 +19,28 @@ function App() {
   const [chordName, setChordName] = useState([]);
   const [chordIntervals, setChordIntervals] = useState([]);
 
+  //--- Create a Set to hold the pressed notes.
+  let pressedKeys = new Set();
 
+  //--- Define the base chords and their intervals.
   const baseChords = {
-    'C': [0, 4, 7],
-    'Cm': [0, 3, 7],
-    'D': [2, 6, 9],
-    'Dsus2': [2, 4, 9],
-    'Dsus4': [2, 7, 9],
-    'Dm': [2, 5, 9],
-    'E': [4, 8, 11],
-    'Em': [4, 7, 11],
-    'F': [5, 9, 0],
-    'Fm': [5, 8, 0],
-    'G': [7, 11, 2],
-    'Gm': [7, 10, 2],
-    'A': [9, 1, 4],
-    'Am': [9, 0, 4],
-    'B': [11, 3, 6],
-    'Bm': [11, 2, 6]
+    'C': [0,4,7],
+    'Cadd9': [0,4,7,11],
+    'Cm': [0,3,7],
+    'D': [2,6,9],
+    'Dsus2': [2,4,9],
+    'Dsus4': [2,7,9],
+    'Dm': [2,5,9],
+    'E': [4,8,11],
+    'Em': [4,7,11],
+    'F': [5,9,0],
+    'Fm': [5,8,0],
+    'G': [7,11,2],
+    'Gm': [7,10,2],
+    'A': [9,1,4],
+    'Am': [9,0,4],
+    'B': [11,3,6],
+    'Bm': [11,2,6]
   };
 
 
@@ -44,6 +50,8 @@ function App() {
         setMidiAccess(access);
         for (let input of access.inputs.values()) {
           input.onmidimessage = processMIDIMessage;
+          setDeviceName(input.name);
+          setDeviceManufacturer(input.manufacturer);
         }
       })
       .catch((err) => console.error("MIDI Access Error:", err));
@@ -64,9 +72,6 @@ function App() {
     }
   }
 
-  //--- Create a Set to hold the pressed notes.
-  let pressedKeys = new Set();
-
   //--- Handle the note ON event. Add the note to the set and detect the chord.
   function noteOn(note) {
     setNoteName(getMidiNoteName(note));
@@ -81,7 +86,6 @@ function App() {
     processChord();
   }
 
-
   function processChord() {
 
     //--- Show how many keys were pressed.
@@ -92,6 +96,7 @@ function App() {
       setChordNotes("");
       setChordIntervals("");
       setChordName("");
+      setNoteNames("");
       return;
     }
 
@@ -101,7 +106,7 @@ function App() {
 
     //--- Show the notes that are pressed.
     setChordNotes(notes);
-    
+
     //---- Show the notes names that are pressed.
     extractChordNotes(notes);
 
@@ -110,24 +115,18 @@ function App() {
       if (intervals.every(interval => noteSet.has(interval))) {
         setChordIntervals(intervals);
         setChordName(chord);
-        
       }
     }
   }
 
+  //--- Extract the note names from the note set.
   function extractChordNotes(noteSet) {
-    //const notes = chordNotes.map(note => getMidiNoteName(note));
-    //setNoteNames(chordNotes.map(note => getMidiNoteName(note)));
-    //noteSet.forEach(key => getMidiNoteName(console.log(key)))
-    console.log(noteSet)
 
     let result = "";
-
-    Object.keys(noteSet).forEach(key => {
-      result += "::" + key.toString();
+    noteSet.forEach(key => {
+      result += getMidiNoteName(key) + " ";
     });
-    
-    console.log(result); // Output: "abc"
+    setNoteNames(result);
 
   }
 
@@ -147,34 +146,47 @@ function App() {
         <Card.Body>
           <InputGroup className="mb-3">
             <InputGroup.Text className="w-50" id="basic-addon1">Chord name: </InputGroup.Text>
-            <Form.Control value={chordName} onChange={setChordName} />
-          </InputGroup>
-
-          <InputGroup className="mb-3">
-            <InputGroup.Text className="w-50" id="basic-addon1">Notes in chord: </InputGroup.Text>
-            <Form.Control value={chordNotes} onChange={setChordNotes} />
-          </InputGroup>
-
-          <InputGroup className="mb-3">
-            <InputGroup.Text className="w-50" id="basic-addon1">Chord intervals: </InputGroup.Text>
-            <Form.Control value={chordIntervals} onChange={setChordIntervals} />
+            <Form.Control value={chordName} onChange={setChordName} readOnly />
           </InputGroup>
 
           <InputGroup className="mb-3">
             <InputGroup.Text className="w-50" id="basic-addon1">Note names: </InputGroup.Text>
-            <Form.Control value={noteNames} onChange={setNoteNames} />
+            <Form.Control value={noteNames} onChange={setNoteNames} readOnly />
           </InputGroup>
 
           <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Notes in chord: </InputGroup.Text>
+            <Form.Control value={chordNotes} onChange={setChordNotes} readOnly />
+          </InputGroup>
+
+          <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Chord intervals: </InputGroup.Text>
+            <Form.Control value={chordIntervals} onChange={setChordIntervals} readOnly />
+          </InputGroup>
+
+
+
+          <InputGroup className="mb-3">
             <InputGroup.Text className="w-50" id="basic-addon1">Last note pressed: </InputGroup.Text>
-            <Form.Control value={noteName} onChange={setNoteName} />
+            <Form.Control value={noteName} onChange={setNoteName} readOnly />
           </InputGroup>
 
           <InputGroup className="mb-3">
             <InputGroup.Text className="w-50" id="basic-addon1">Number of notes: </InputGroup.Text>
-            <Form.Control value={noteCount} onChange={setNoteCount} />
+            <Form.Control value={noteCount} onChange={setNoteCount} readOnly />
           </InputGroup>
         </Card.Body>
+
+        <Card.Footer>
+        <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Device: </InputGroup.Text>
+            <Form.Control value={deviceName} onChange={setDeviceName} readOnly/>
+          </InputGroup>
+          <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Manufacturer: </InputGroup.Text>
+            <Form.Control value={deviceManufacturer} onChange={setDeviceManufacturer} readOnly />
+          </InputGroup>
+        </Card.Footer>
       </Card>
 
 

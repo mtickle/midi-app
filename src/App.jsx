@@ -66,6 +66,7 @@ function App() {
 
   function processChord() {
 
+    //--- Show the number of pressed notes.
     setNoteCount(pressedNotes.size);
 
     if (pressedNotes.size != 3) {

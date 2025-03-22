@@ -1,28 +1,57 @@
 import { useState, useEffect } from 'react'
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
+import Card from 'react-bootstrap/Card';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
-import context from 'react-bootstrap/esm/AccordionContext';
 
 function App() {
 
+  const [deviceName, setDeviceName] = useState([]);
+  const [deviceManufacturer, setDeviceManufacturer] = useState([]);
   const [midiAccess, setMidiAccess] = useState(null);
   const [messages, setMessages] = useState([]);
   const [noteName, setNoteName] = useState([]);
+  const [noteNames, setNoteNames] = useState([]);
   const [noteCount, setNoteCount] = useState([]);
   const [chordType, setChordType] = useState([]);
   const [chordNotes, setChordNotes] = useState([]);
   const [chordName, setChordName] = useState([]);
   const [chordIntervals, setChordIntervals] = useState([]);
 
+  //--- Create a Set to hold the pressed notes.
+  let pressedKeys = new Set();
+
+  //--- Define the base chords and their intervals.
+  const baseChords = {
+    'C': [0,4,7],
+    'Cadd9': [0,4,7,11],
+    'Cm': [0,3,7],
+    'D': [2,6,9],
+    'Dsus2': [2,4,9],
+    'Dsus4': [2,7,9],
+    'Dm': [2,5,9],
+    'E': [4,8,11],
+    'Em': [4,7,11],
+    'F': [5,9,0],
+    'Fm': [5,8,0],
+    'G': [7,11,2],
+    'Gm': [7,10,2],
+    'A': [9,1,4],
+    'Am': [9,0,4],
+    'B': [11,3,6],
+    'Bm': [11,2,6]
+  };
+
+
   useEffect(() => {
     navigator.requestMIDIAccess()
       .then((access) => {
         setMidiAccess(access);
         for (let input of access.inputs.values()) {
-          //input.onmidimessage = handleMIDIMessage;
           input.onmidimessage = processMIDIMessage;
+          setDeviceName(input.name);
+          setDeviceManufacturer(input.manufacturer);
         }
       })
       .catch((err) => console.error("MIDI Access Error:", err));
@@ -36,9 +65,6 @@ function App() {
     const note = message.data[1];
     const velocity = (message.data.length > 2) ? message.data[2] : 0;
 
-    //--- Translate and show the actual note name.
-    //setNoteName(getMidiNoteName(note));
-
     if (command === 144 && velocity > 0) { // Note on
       noteOn(note);
     } else if (command === 128 || (command === 144 && velocity === 0)) { // Note off
@@ -46,27 +72,22 @@ function App() {
     }
   }
 
-  //--- Create a Set to hold the pressed notes.
-  let pressedNotes = new Set();
-
   //--- Handle the note ON event. Add the note to the set and detect the chord.
   function noteOn(note) {
     setNoteName(getMidiNoteName(note));
-    pressedNotes.add(note);
+    pressedKeys.add(note);
     processChord();
   }
 
   //--- Handle the note OFF event. Remove the note to the set and detect the chord.
   function noteOff(note) {
     setNoteName("");
-    pressedNotes.delete(note);
+    pressedKeys.delete(note);
     processChord();
   }
 
-
   function processChord() {
 
-    //--- Show the number of pressed notes.
     setNoteCount(pressedNotes.size);
 
     if (pressedNotes.size != 3) {
@@ -89,21 +110,28 @@ function App() {
 
     setChordName(chordName);
     setChordNotes(notes);
-    setChordIntervals(intervals);
-    // Add more chord patterns as needed
 
-    console.log("Chord:", chordName, notes);
+    //---- Show the notes names that are pressed.
+    extractChordNotes(notes);
+
+    //--- Check if the pressed notes match any of the base chords.
+    for (const [chord, intervals] of Object.entries(baseChords)) {
+      if (intervals.every(interval => noteSet.has(interval))) {
+        setChordIntervals(intervals);
+        setChordName(chord);
+      }
+    }
   }
 
+  //--- Extract the note names from the note set.
+  function extractChordNotes(noteSet) {
 
+    let result = "";
+    noteSet.forEach(key => {
+      result += getMidiNoteName(key) + " ";
+    });
+    setNoteNames(result);
 
-  function handleMIDIMessage(event) {
-    const [status, note, velocity] = event.data;
-    const type = status === 144 ? "Note On" : status === 128 ? "Note Off" : "Other";
-    setNoteName(getMidiNoteName(note));
-    //const noteName = getMidiNoteName(note);
-    const newMessage = { type, note, velocity };
-    setMessages((prev) => [newMessage, ...prev.slice(0, 9)]);
   }
 
   function getMidiNoteName(note) {
@@ -117,7 +145,53 @@ function App() {
   return (
     <>
 
-      <h1>MIDI-APP</h1>
+      <Card>
+        <Card.Header>Chord Detector</Card.Header>
+        <Card.Body>
+          <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Chord name: </InputGroup.Text>
+            <Form.Control value={chordName} onChange={setChordName} readOnly />
+          </InputGroup>
+
+          <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Note names: </InputGroup.Text>
+            <Form.Control value={noteNames} onChange={setNoteNames} readOnly />
+          </InputGroup>
+
+          <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Notes in chord: </InputGroup.Text>
+            <Form.Control value={chordNotes} onChange={setChordNotes} readOnly />
+          </InputGroup>
+
+          <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Chord intervals: </InputGroup.Text>
+            <Form.Control value={chordIntervals} onChange={setChordIntervals} readOnly />
+          </InputGroup>
+
+
+
+          <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Last note pressed: </InputGroup.Text>
+            <Form.Control value={noteName} onChange={setNoteName} readOnly />
+          </InputGroup>
+
+          <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Number of notes: </InputGroup.Text>
+            <Form.Control value={noteCount} onChange={setNoteCount} readOnly />
+          </InputGroup>
+        </Card.Body>
+
+        <Card.Footer>
+        <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Device: </InputGroup.Text>
+            <Form.Control value={deviceName} onChange={setDeviceName} readOnly/>
+          </InputGroup>
+          <InputGroup className="mb-3">
+            <InputGroup.Text className="w-50" id="basic-addon1">Manufacturer: </InputGroup.Text>
+            <Form.Control value={deviceManufacturer} onChange={setDeviceManufacturer} readOnly />
+          </InputGroup>
+        </Card.Footer>
+      </Card>
 
 
       {/* <div className="card">
@@ -151,55 +225,6 @@ function App() {
         </div>
 
 </div> */}
-
-      <div className="card">
-      <InputGroup className="mb-3">
-        <InputGroup.Text id="basic-addon1">Note pressed: </InputGroup.Text>
-        <Form.Control  value={noteName} onChange={setNoteName}/>
-      </InputGroup>
-
-      <InputGroup className="mb-3">
-        <InputGroup.Text id="basic-addon1">Number of notes pressed: </InputGroup.Text>
-        <Form.Control  value={noteCount} onChange={setNoteCount}/>
-      </InputGroup>
-
-      <InputGroup className="mb-3">
-        <InputGroup.Text id="basic-addon1">Notes in chord: </InputGroup.Text>
-        <Form.Control  value={chordNotes} onChange={setChordNotes}/>
-      </InputGroup>
-
-      <InputGroup className="mb-3">
-        <InputGroup.Text id="basic-addon1">Chord name: </InputGroup.Text>
-        <Form.Control  value={chordName} onChange={setChordName}/>
-      </InputGroup>
-        
-      <InputGroup className="mb-3">
-        <InputGroup.Text id="basic-addon1">Chord intervals: </InputGroup.Text>
-        <Form.Control  value={chordIntervals} onChange={setChordIntervals}/>
-      </InputGroup>
-
-      </div>
-
-
-      <div className="card">
-
-        {midiAccess ? (
-          <p className="mb-4">MIDI Connected! Listening for messages...</p>
-        ) : (
-          <p className="mb-4">Waiting for MIDI access...</p>
-        )}
-
-
-
-        {/* <ul className="border border-gray-600 p-2 rounded">
-          {messages.map((msg, index) => (
-            <li key={index} className="py-1">
-              <strong>{msg.type}</strong> - Note: {msg.note} | Velocity: {msg.velocity}
-            </li>
-          ))}
-        </ul> */}
-      </div>
-
 
 
     </>

@@ -31,6 +31,7 @@ function App() {
     'Dsus2': [2,4,9],
     'Dsus4': [2,7,9],
     'Dm': [2,5,9],
+    'Dm9': [2,5,9,0,4],
     'E': [4,8,11],
     'Em': [4,7,11],
     'F': [5,9,0],
@@ -88,34 +89,33 @@ function App() {
 
   function processChord() {
 
-    setNoteCount(pressedNotes.size);
+    //--- Show how many keys were pressed.
+    setNoteCount(pressedKeys.size);
 
-    if (pressedNotes.size != 3) {
-      return; // Not enough notes for a chord
+    //--- If less than 3 keys are pressed, clear the chord data and return.
+    if (pressedKeys.size < 3) {
+      setChordNotes("");
+      setChordIntervals("");
+      setChordName("");
+      setNoteNames("");
+      return;
     }
 
-    
+    //--- Get the notes and intervals from the pressed keys.
+    const notes = Array.from(pressedKeys).sort((a, b) => a - b);
+    const noteSet = new Set(notes.map(note => note % 12));
 
-    const notes = Array.from(pressedNotes).sort((a, b) => a - b);
-    const intervals = notes.map(note => note % 12); // Get note intervals within an octave
-    console.log("Intervals:", intervals);
-    let chordName = "Unknown";
-
-    //Basic chord detection logic
-    if (intervals.includes(0) && intervals.includes(4) && intervals.includes(7)) {
-      chordName = "Major";
-    } else if (intervals.includes(0) && intervals.includes(3) && intervals.includes(7)) {
-      chordName = "Minor";
-    }
-
-    setChordName(chordName);
+    //--- Show the notes that are pressed.
     setChordNotes(notes);
 
     //---- Show the notes names that are pressed.
     extractChordNotes(notes);
 
     //--- Check if the pressed notes match any of the base chords.
-    for (const [chord, intervals] of Object.entries(baseChords)) {
+    //--- This is running against the baseChords object defined above.
+    //--- The intervals value will only set if the notes match the chord intervals.
+    for (const [chord, intervals] of Object.entries(baseChords)) {   
+      console.log(intervals);   
       if (intervals.every(interval => noteSet.has(interval))) {
         setChordIntervals(intervals);
         setChordName(chord);
@@ -137,8 +137,9 @@ function App() {
   function getMidiNoteName(note) {
     const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
     const name = noteNames[note % 12];
-    const octave = Math.floor(note / 12) - 1;
-    return `${name}${octave}`;
+    //const octave = Math.floor(note / 12) - 1;
+    //return `${name}${octave}`;
+    return `${name}`;
   }
 
 

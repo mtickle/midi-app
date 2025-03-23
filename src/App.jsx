@@ -31,7 +31,7 @@ function App() {
     'Dsus2': [2,4,9],
     'Dsus4': [2,7,9],
     'Dm': [2,5,9],
-    'Dm9': [2,5,9,0,4],
+    'Dm9': [2,5,9,0],
     'E': [4,8,11],
     'Em': [4,7,11],
     'F': [5,9,0],
@@ -43,6 +43,27 @@ function App() {
     'B': [11,3,6],
     'Bm': [11,2,6]
   };
+
+  const chordsWithNotes = {
+    'C': ['C E G'],
+    'Cadd9': ['C', 'E', 'G', 'D'],
+    'Cm': ['C', 'E♭', 'G'],
+    'D': ['D', 'F#', 'A'],
+    'Dsus2': ['D', 'E', 'A'],
+    'Dsus4': ['D', 'G', 'A'],
+    'Dm': ['D', 'F', 'A'],
+    'Dm9': ['D', 'F', 'A', 'C', 'E'],
+    'E': ['E', 'G#', 'B'],
+    'Em': ['E', 'G', 'B'],
+    'F': ['F', 'A', 'C'],
+    'Fm': ['F', 'A♭', 'C'],
+    'G': ['G', 'B', 'D'],
+    'Gm': ['G', 'B♭', 'D'],
+    'A': ['A', 'C#', 'E'],
+    'Am': ['A', 'C', 'E'],
+    'B': ['B', 'D#', 'F#'],
+    'Bm': ['B', 'D', 'F#']
+  }
 
 
   useEffect(() => {
@@ -105,6 +126,8 @@ function App() {
     const notes = Array.from(pressedKeys).sort((a, b) => a - b);
     const noteSet = new Set(notes.map(note => note % 12));
 
+    console.log(noteSet)
+
     //--- Show the notes that are pressed.
     setChordNotes(notes);
 
@@ -114,8 +137,17 @@ function App() {
     //--- Check if the pressed notes match any of the base chords.
     //--- This is running against the baseChords object defined above.
     //--- The intervals value will only set if the notes match the chord intervals.
+    
+    //--- This processes the chord with notes.
+// for (const [chord, chordNotes] of Object.entries(chordsWithNotes)) {   
+//   //console.log(chordNotes);   
+//   if (chordNotes.every(note => noteSet.has(getMidiNoteName(note)))) {     
+//     setChordName(chord);   
+//   }
+// }
+
+    //--- This processes the chords with intervals.
     for (const [chord, intervals] of Object.entries(baseChords)) {   
-      console.log(intervals);   
       if (intervals.every(interval => noteSet.has(interval))) {
         setChordIntervals(intervals);
         setChordName(chord);
@@ -137,6 +169,7 @@ function App() {
   function getMidiNoteName(note) {
     const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
     const name = noteNames[note % 12];
+    //--- You can also add the octave number if you want.
     //const octave = Math.floor(note / 12) - 1;
     //return `${name}${octave}`;
     return `${name}`;

@@ -1,17 +1,34 @@
 import { useState, useEffect } from 'react'
+
+//--- Bootstrap imports.
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Card from 'react-bootstrap/Card';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+
+//--- CSS imports.
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
+import { CardBody } from 'react-bootstrap';
 
 function App() {
 
+  //--- Device values.
   const [deviceName, setDeviceName] = useState([]);
   const [deviceManufacturer, setDeviceManufacturer] = useState([]);
   const [midiAccess, setMidiAccess] = useState(null);
-  const [messages, setMessages] = useState([]);
+
+  //--- Message values.
+  const [message, setMessage] = useState([]);
+  const [messageName, setMessageName] = useState([]);
+  const [noteNumber, setNoteNumber] = useState([]);
   const [noteName, setNoteName] = useState([]);
+  const [velocity, setVelocity] = useState([]);
+
+  //--- Processed values.
+  const [octaveName, setOctaveName] = useState([]);
   const [noteNames, setNoteNames] = useState([]);
   const [noteCount, setNoteCount] = useState([]);
   const [chordType, setChordType] = useState([]);
@@ -23,25 +40,25 @@ function App() {
   let pressedKeys = new Set();
 
   //--- Define the base chords and their intervals.
-  const baseChords = {
-    'C': [0,4,7],
-    'Cadd9': [0,4,7,11],
-    'Cm': [0,3,7],
-    'D': [2,6,9],
-    'Dsus2': [2,4,9],
-    'Dsus4': [2,7,9],
-    'Dm': [2,5,9],
-    'Dm9': [2,5,9,0],
-    'E': [4,8,11],
-    'Em': [4,7,11],
-    'F': [5,9,0],
-    'Fm': [5,8,0],
-    'G': [7,11,2],
-    'Gm': [7,10,2],
-    'A': [9,1,4],
-    'Am': [9,0,4],
-    'B': [11,3,6],
-    'Bm': [11,2,6]
+    const baseChords = {
+    'C': [0, 4, 7],
+    'Cadd9': [0, 4, 7, 11],
+    'Cm': [0, 3, 7],
+    'D': [2, 6, 9],
+    'Dsus2': [2, 4, 9],
+    'Dsus4': [2, 7, 9],
+    'Dm': [2, 5, 9],
+    'Dm7': [2, 5, 9, 0],
+    'E': [4, 8, 11],
+    'Em': [4, 7, 11],
+    'F': [5, 9, 0],
+    'Fm': [5, 8, 0],
+    'G': [7, 11, 2],
+    'Gm': [7, 10, 2],
+    'A': [9, 1, 4],
+    'Am': [9, 0, 4],
+    'B': [11, 3, 6],
+    'Bm': [11, 2, 6]
   };
 
   const chordsWithNotes = {
@@ -52,6 +69,7 @@ function App() {
     'Dsus2': ['D', 'E', 'A'],
     'Dsus4': ['D', 'G', 'A'],
     'Dm': ['D', 'F', 'A'],
+    'Dm7': ['D F A C'],
     'Dm9': ['D', 'F', 'A', 'C', 'E'],
     'E': ['E', 'G#', 'B'],
     'Em': ['E', 'G', 'B'],
@@ -65,7 +83,20 @@ function App() {
     'Bm': ['B', 'D', 'F#']
   }
 
+  const midiMessages = {
+    128: "Note Off",
+    137: "Pad Off",
+    144: "Note On",
+    153: "Pad Hit",
+    176: "Control Change",
+    192: "Program Change",
+    217: "Pad Full",
+    224: "Pitch Bend"
+  }
 
+  const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+  //--- Request MIDI access on component mount.
   useEffect(() => {
     navigator.requestMIDIAccess()
       .then((access) => {
@@ -87,6 +118,17 @@ function App() {
     const note = message.data[1];
     const velocity = (message.data.length > 2) ? message.data[2] : 0;
 
+    //--- Show the MIDI message data.
+    //console.log("MIDI Message:", message.data);
+
+    //--- Set these values.
+    setNoteNumber(note)
+    setOctaveName(getMidiOcatveName(note));
+    setVelocity(velocity);
+    setMessage(message.data[0]);
+    setMessageName(getMidiMessageName(command));
+
+    //--- Handle the note ON and OFF events.
     if (command === 144 && velocity > 0) { // Note on
       noteOn(note);
     } else if (command === 128 || (command === 144 && velocity === 0)) { // Note off
@@ -126,8 +168,6 @@ function App() {
     const notes = Array.from(pressedKeys).sort((a, b) => a - b);
     const noteSet = new Set(notes.map(note => note % 12));
 
-    console.log(noteSet)
-
     //--- Show the notes that are pressed.
     setChordNotes(notes);
 
@@ -137,17 +177,16 @@ function App() {
     //--- Check if the pressed notes match any of the base chords.
     //--- This is running against the baseChords object defined above.
     //--- The intervals value will only set if the notes match the chord intervals.
-    
+
     //--- This processes the chord with notes.
-// for (const [chord, chordNotes] of Object.entries(chordsWithNotes)) {   
-//   //console.log(chordNotes);   
-//   if (chordNotes.every(note => noteSet.has(getMidiNoteName(note)))) {     
-//     setChordName(chord);   
-//   }
-// }
+    // for (const [chord, chordNotes] of Object.entries(chordsWithNotes)) {   
+    //   if (chordNotes.every(note => noteSet.has(getMidiNoteName(note)))) {     
+    //     setChordName(chord);   
+    //   }
+    // }
 
     //--- This processes the chords with intervals.
-    for (const [chord, intervals] of Object.entries(baseChords)) {   
+    for (const [chord, intervals] of Object.entries(baseChords)) {
       if (intervals.every(interval => noteSet.has(interval))) {
         setChordIntervals(intervals);
         setChordName(chord);
@@ -157,75 +196,128 @@ function App() {
 
   //--- Extract the note names from the note set.
   function extractChordNotes(noteSet) {
-
+    //--- Show the note names that are pressed.
     let result = "";
     noteSet.forEach(key => {
       result += getMidiNoteName(key) + " ";
     });
     setNoteNames(result);
-
   }
 
+  //--- Get the note name from the MIDI note number.
   function getMidiNoteName(note) {
     const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
     const name = noteNames[note % 12];
-    //--- You can also add the octave number if you want.
-    //const octave = Math.floor(note / 12) - 1;
-    //return `${name}${octave}`;
     return `${name}`;
   }
 
+  function getMidiOcatveName(note) {
+    const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    const octave = Math.floor(note / 12) - 1;
+    return `${octave}`;
+  }
+
+  //--- Get the MIDI message name from the command number.
+  function getMidiMessageName(message) {
+    const messageNames = {
+      128: "Note Off",
+      137: "Pad Off",
+      144: "Note On",
+      153: "Pad Hit",
+      176: "Control Change",
+      192: "Program Change",
+      217: "Pad Full",
+      224: "Pitch Bend"
+
+    };
+    return messageNames[message] || "Unknown Message";
+
+  }
 
   return (
     <>
 
-      <Card>
-        <Card.Header>Chord Detector</Card.Header>
-        <Card.Body>
-          <InputGroup className="mb-3">
-            <InputGroup.Text className="w-50" id="basic-addon1">Chord name: </InputGroup.Text>
-            <Form.Control value={chordName} onChange={setChordName} readOnly />
-          </InputGroup>
+      <Container>
+        <Row>
+          <Col>
+            <Card>
+              <Card.Header>Chord Detector</Card.Header>
+              <Card.Body>
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Chord name: </InputGroup.Text>
+                  <Form.Control value={chordName} onChange={setChordName} readOnly />
+                </InputGroup>
 
-          <InputGroup className="mb-3">
-            <InputGroup.Text className="w-50" id="basic-addon1">Note names: </InputGroup.Text>
-            <Form.Control value={noteNames} onChange={setNoteNames} readOnly />
-          </InputGroup>
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Note names: </InputGroup.Text>
+                  <Form.Control value={noteNames} onChange={setNoteNames} readOnly />
+                </InputGroup>
 
-          <InputGroup className="mb-3">
-            <InputGroup.Text className="w-50" id="basic-addon1">Notes in chord: </InputGroup.Text>
-            <Form.Control value={chordNotes} onChange={setChordNotes} readOnly />
-          </InputGroup>
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Notes in chord: </InputGroup.Text>
+                  <Form.Control value={chordNotes} onChange={setChordNotes} readOnly />
+                </InputGroup>
 
-          <InputGroup className="mb-3">
-            <InputGroup.Text className="w-50" id="basic-addon1">Chord intervals: </InputGroup.Text>
-            <Form.Control value={chordIntervals} onChange={setChordIntervals} readOnly />
-          </InputGroup>
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Chord intervals: </InputGroup.Text>
+                  <Form.Control value={chordIntervals} onChange={setChordIntervals} readOnly />
+                </InputGroup>
+
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Last note pressed: </InputGroup.Text>
+                  <Form.Control value={noteName} onChange={setNoteName} readOnly />
+                </InputGroup>
+
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Number of notes: </InputGroup.Text>
+                  <Form.Control value={noteCount} onChange={setNoteCount} readOnly />
+                </InputGroup>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          <Col>
+            <Card>
+              <Card.Header>MIDI Messages</Card.Header>
+              <Card.Body>
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Last note number: </InputGroup.Text>
+                  <Form.Control value={noteNumber} onChange={setNoteNumber} readOnly />
+                </InputGroup>
+
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Last note octave: </InputGroup.Text>
+                  <Form.Control value={octaveName} onChange={setOctaveName} readOnly />
+                </InputGroup>
+
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Last Velocity: </InputGroup.Text>
+                  <Form.Control value={velocity} onChange={setVelocity} readOnly />
+                </InputGroup>
+
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Last Message: </InputGroup.Text>
+                  <Form.Control value={message} onChange={setMessage} readOnly />
+                </InputGroup>
+
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Last message name: </InputGroup.Text>
+                  <Form.Control value={messageName} onChange={setMessageName} readOnly />
+                </InputGroup>
+
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Device: </InputGroup.Text>
+                  <Form.Control value={deviceName} onChange={setDeviceName} readOnly />
+                </InputGroup>
+
+              </Card.Body>
+            </Card >
+          </Col>
+        </Row>
+      </Container>
 
 
 
-          <InputGroup className="mb-3">
-            <InputGroup.Text className="w-50" id="basic-addon1">Last note pressed: </InputGroup.Text>
-            <Form.Control value={noteName} onChange={setNoteName} readOnly />
-          </InputGroup>
-
-          <InputGroup className="mb-3">
-            <InputGroup.Text className="w-50" id="basic-addon1">Number of notes: </InputGroup.Text>
-            <Form.Control value={noteCount} onChange={setNoteCount} readOnly />
-          </InputGroup>
-        </Card.Body>
-
-        <Card.Footer>
-        <InputGroup className="mb-3">
-            <InputGroup.Text className="w-50" id="basic-addon1">Device: </InputGroup.Text>
-            <Form.Control value={deviceName} onChange={setDeviceName} readOnly/>
-          </InputGroup>
-          <InputGroup className="mb-3">
-            <InputGroup.Text className="w-50" id="basic-addon1">Manufacturer: </InputGroup.Text>
-            <Form.Control value={deviceManufacturer} onChange={setDeviceManufacturer} readOnly />
-          </InputGroup>
-        </Card.Footer>
-      </Card>
 
 
       {/* <div className="card">

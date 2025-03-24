@@ -11,6 +11,7 @@ import Col from 'react-bootstrap/Col';
 //--- CSS imports.
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
+import './piano.css'
 import { CardBody } from 'react-bootstrap';
 
 function App() {
@@ -40,7 +41,8 @@ function App() {
   let pressedKeys = new Set();
 
   //--- Define the base chords and their intervals.
-    const baseChords = {
+  const baseChords = {
+    'C5': [0, 7],
     'C': [0, 4, 7],
     'Cadd9': [0, 4, 7, 11],
     'Cm': [0, 3, 7],
@@ -156,13 +158,13 @@ function App() {
     setNoteCount(pressedKeys.size);
 
     //--- If less than 3 keys are pressed, clear the chord data and return.
-    if (pressedKeys.size < 3) {
-      setChordNotes("");
-      setChordIntervals("");
-      setChordName("");
-      setNoteNames("");
-      return;
-    }
+    // if (pressedKeys.size < 3) {
+       setChordNotes("");
+       setChordIntervals("");
+       setChordName("");
+       setNoteNames("");
+    //   return;
+    // }
 
     //--- Get the notes and intervals from the pressed keys.
     const notes = Array.from(pressedKeys).sort((a, b) => a - b);
@@ -187,10 +189,11 @@ function App() {
 
     //--- This processes the chords with intervals.
     for (const [chord, intervals] of Object.entries(baseChords)) {
-      if (intervals.every(interval => noteSet.has(interval))) {
+      
+      if (intervals.every(interval => noteSet.has(interval))) {        
         setChordIntervals(intervals);
         setChordName(chord);
-      }
+      } 
     }
   }
 
@@ -212,7 +215,6 @@ function App() {
   }
 
   function getMidiOcatveName(note) {
-    const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
     const octave = Math.floor(note / 12) - 1;
     return `${octave}`;
   }
@@ -242,7 +244,7 @@ function App() {
           <Col>
             <Card>
               <Card.Header>Chord Detector</Card.Header>
-              <Card.Body>
+              <Card.Body bg="Secondary" >
                 <InputGroup className="mb-3">
                   <InputGroup.Text className="w-50" id="basic-addon1">Chord name: </InputGroup.Text>
                   <Form.Control value={chordName} onChange={setChordName} readOnly />
@@ -314,45 +316,45 @@ function App() {
             </Card >
           </Col>
         </Row>
-      </Container>
+        <Row>
+          <Col>
+            {/*<div className="card">
 
-
-
-
-
-      {/* <div className="card">
-<div className="piano-container">
+         <div className="piano-container">
             <ul className="piano-keys-list">
                 <li className="piano-keys white-key" data-key="01"></li>
                 <li className="piano-keys black-key" data-key="02"></li>
                 <li className="piano-keys white-key" data-key="03"></li>
                 <li className="piano-keys black-key" data-key="04"></li>
                 <li className="piano-keys white-key" data-key="05"></li>
-                <li className="piano-keys white-key" data-key="05"></li>
-                <li className="piano-keys black-key" data-key="06"></li>
-                <li className="piano-keys white-key" data-key="07"></li>
-                <li className="piano-keys black-key" data-key="08"></li>
-                <li className="piano-keys white-key" data-key="09"></li>
-                <li className="piano-keys black-key" data-key="10"></li>
-                <li className="piano-keys white-key" data-key="11"></li>
+
+                <li className="piano-keys white-key" data-key="06"></li>
+                <li className="piano-keys black-key" data-key="07"></li>
+                <li className="piano-keys white-key" data-key="08"></li>
+                <li className="piano-keys black-key" data-key="09"></li>
+                <li className="piano-keys white-key" data-key="10"></li>
+                <li className="piano-keys black-key" data-key="11"></li>
                 <li className="piano-keys white-key" data-key="12"></li>
-                <li className="piano-keys black-key" data-key="13"></li>
-                <li className="piano-keys white-key" data-key="14"></li>
-                <li className="piano-keys black-key" data-key="15"></li>
-                <li className="piano-keys white-key" data-key="16"></li>
+
+                <li className="piano-keys white-key" data-key="13"></li>
+                <li className="piano-keys black-key" data-key="14"></li>
+                <li className="piano-keys white-key" data-key="15"></li>
+                <li className="piano-keys black-key" data-key="16"></li>
                 <li className="piano-keys white-key" data-key="17"></li>
-                <li className="piano-keys black-key" data-key="18"></li>
-                <li className="piano-keys white-key" data-key="19"></li>
-                <li className="piano-keys black-key" data-key="20"></li>
-                <li className="piano-keys white-key" data-key="21"></li>
-                <li className="piano-keys black-key" data-key="22"></li>
-                <li className="piano-keys white-key" data-key="23"></li>
+                <li className="piano-keys white-key" data-key="18"></li>
+                <li className="piano-keys black-key" data-key="19"></li>
+                <li className="piano-keys white-key" data-key="20"></li>
+                <li className="piano-keys black-key" data-key="21"></li>
+                <li className="piano-keys white-key" data-key="22"></li>
+                <li className="piano-keys black-key" data-key="23"></li>
+                <li className="piano-keys white-key" data-key="24"></li>
             </ul>
         </div>
 
 </div> */}
-
-
+          </Col>
+        </Row>
+      </Container>
     </>
   )
 }

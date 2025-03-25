@@ -159,12 +159,14 @@ function App() {
 
     //--- If less than 3 keys are pressed, clear the chord data and return.
     // if (pressedKeys.size < 3) {
-       setChordNotes("");
-       setChordIntervals("");
-       setChordName("");
-       setNoteNames("");
+    setChordNotes("");
+    setChordIntervals("");
+    setChordName("");
+    setNoteNames("");
     //   return;
     // }
+
+
 
     //--- Get the notes and intervals from the pressed keys.
     const notes = Array.from(pressedKeys).sort((a, b) => a - b);
@@ -189,13 +191,14 @@ function App() {
 
     //--- This processes the chords with intervals.
     for (const [chord, intervals] of Object.entries(baseChords)) {
-      
-      if (intervals.every(interval => noteSet.has(interval))) {        
+
+      if (intervals.every(interval => noteSet.has(interval))) {
         setChordIntervals(intervals);
         setChordName(chord);
-      } 
+      }
     }
   }
+
 
   //--- Extract the note names from the note set.
   function extractChordNotes(noteSet) {
@@ -354,6 +357,7 @@ function App() {
 </div> */}
           </Col>
         </Row>
+       
       </Container>
     </>
   )

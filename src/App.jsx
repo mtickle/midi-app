@@ -32,7 +32,6 @@ function App() {
   const [octaveName, setOctaveName] = useState([]);
   const [noteNames, setNoteNames] = useState([]);
   const [noteCount, setNoteCount] = useState([]);
-  const [chordType, setChordType] = useState([]);
   const [chordNotes, setChordNotes] = useState([]);
   const [chordName, setChordName] = useState([]);
   const [chordIntervals, setChordIntervals] = useState([]);
@@ -42,15 +41,21 @@ function App() {
 
   //--- Define the base chords and their intervals.
   const baseChords = {
+
+    //--- C and its variations.
     'C5': [0, 7],
     'C': [0, 4, 7],
     'Cadd9': [0, 4, 7, 11],
     'Cm': [0, 3, 7],
+
+    //--- D and its variations.
+    'D5': [2, 9],
     'D': [2, 6, 9],
     'Dsus2': [2, 4, 9],
     'Dsus4': [2, 7, 9],
     'Dm': [2, 5, 9],
     'Dm7': [2, 5, 9, 0],
+
     'E': [4, 8, 11],
     'Em': [4, 7, 11],
     'F': [5, 9, 0],
@@ -62,41 +67,6 @@ function App() {
     'B': [11, 3, 6],
     'Bm': [11, 2, 6]
   };
-
-  const chordsWithNotes = {
-    'C': ['C E G'],
-    'Cadd9': ['C', 'E', 'G', 'D'],
-    'Cm': ['C', 'E♭', 'G'],
-    'D': ['D', 'F#', 'A'],
-    'Dsus2': ['D', 'E', 'A'],
-    'Dsus4': ['D', 'G', 'A'],
-    'Dm': ['D', 'F', 'A'],
-    'Dm7': ['D F A C'],
-    'Dm9': ['D', 'F', 'A', 'C', 'E'],
-    'E': ['E', 'G#', 'B'],
-    'Em': ['E', 'G', 'B'],
-    'F': ['F', 'A', 'C'],
-    'Fm': ['F', 'A♭', 'C'],
-    'G': ['G', 'B', 'D'],
-    'Gm': ['G', 'B♭', 'D'],
-    'A': ['A', 'C#', 'E'],
-    'Am': ['A', 'C', 'E'],
-    'B': ['B', 'D#', 'F#'],
-    'Bm': ['B', 'D', 'F#']
-  }
-
-  const midiMessages = {
-    128: "Note Off",
-    137: "Pad Off",
-    144: "Note On",
-    153: "Pad Hit",
-    176: "Control Change",
-    192: "Program Change",
-    217: "Pad Full",
-    224: "Pitch Bend"
-  }
-
-  const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
   //--- Request MIDI access on component mount.
   useEffect(() => {
@@ -157,16 +127,14 @@ function App() {
     //--- Show how many keys were pressed.
     setNoteCount(pressedKeys.size);
 
-    //--- If less than 3 keys are pressed, clear the chord data and return.
-    // if (pressedKeys.size < 3) {
-    setChordNotes("");
-    setChordIntervals("");
-    setChordName("");
-    setNoteNames("");
-    //   return;
-    // }
-
-
+    //--- If less than 2 keys are pressed, clear the chord data and return.
+    if (pressedKeys.size < 2) {
+      setChordNotes("");
+      setChordIntervals("");
+      setChordName("");
+      setNoteNames("");
+      return;
+    }
 
     //--- Get the notes and intervals from the pressed keys.
     const notes = Array.from(pressedKeys).sort((a, b) => a - b);
@@ -181,24 +149,13 @@ function App() {
     //--- Check if the pressed notes match any of the base chords.
     //--- This is running against the baseChords object defined above.
     //--- The intervals value will only set if the notes match the chord intervals.
-
-    //--- This processes the chord with notes.
-    // for (const [chord, chordNotes] of Object.entries(chordsWithNotes)) {   
-    //   if (chordNotes.every(note => noteSet.has(getMidiNoteName(note)))) {     
-    //     setChordName(chord);   
-    //   }
-    // }
-
-    //--- This processes the chords with intervals.
     for (const [chord, intervals] of Object.entries(baseChords)) {
-
       if (intervals.every(interval => noteSet.has(interval))) {
         setChordIntervals(intervals);
         setChordName(chord);
       }
     }
   }
-
 
   //--- Extract the note names from the note set.
   function extractChordNotes(noteSet) {
@@ -319,45 +276,45 @@ function App() {
             </Card >
           </Col>
         </Row>
-        <Row>
+        {/* <Row>
           <Col>
-            {/*<div className="card">
+            <div className="card"> */}
 
-         <div className="piano-container">
-            <ul className="piano-keys-list">
-                <li className="piano-keys white-key" data-key="01"></li>
-                <li className="piano-keys black-key" data-key="02"></li>
-                <li className="piano-keys white-key" data-key="03"></li>
-                <li className="piano-keys black-key" data-key="04"></li>
-                <li className="piano-keys white-key" data-key="05"></li>
+        {/* <div className="piano-container">
+                <ul className="piano-keys-list">
+                  <li className="piano-keys white-key" data-key="D" id='C'></li>
+                  <li className="piano-keys black-key" data-key="C#" id='C#'></li>
+                  <li className="piano-keys white-key" data-key="D" id='D'></li>
+                  <li className="piano-keys black-key" data-key="04"></li>
+                  <li className="piano-keys white-key" data-key="05"></li>
 
-                <li className="piano-keys white-key" data-key="06"></li>
-                <li className="piano-keys black-key" data-key="07"></li>
-                <li className="piano-keys white-key" data-key="08"></li>
-                <li className="piano-keys black-key" data-key="09"></li>
-                <li className="piano-keys white-key" data-key="10"></li>
-                <li className="piano-keys black-key" data-key="11"></li>
-                <li className="piano-keys white-key" data-key="12"></li>
+                  <li className="piano-keys white-key" data-key="06"></li>
+                  <li className="piano-keys black-key" data-key="07"></li>
+                  <li className="piano-keys white-key" data-key="08"></li>
+                  <li className="piano-keys black-key" data-key="09"></li>
+                  <li className="piano-keys white-key" data-key="10"></li>
+                  <li className="piano-keys black-key" data-key="11"></li>
+                  <li className="piano-keys white-key" data-key="12"></li>
 
-                <li className="piano-keys white-key" data-key="13"></li>
-                <li className="piano-keys black-key" data-key="14"></li>
-                <li className="piano-keys white-key" data-key="15"></li>
-                <li className="piano-keys black-key" data-key="16"></li>
-                <li className="piano-keys white-key" data-key="17"></li>
-                <li className="piano-keys white-key" data-key="18"></li>
-                <li className="piano-keys black-key" data-key="19"></li>
-                <li className="piano-keys white-key" data-key="20"></li>
-                <li className="piano-keys black-key" data-key="21"></li>
-                <li className="piano-keys white-key" data-key="22"></li>
-                <li className="piano-keys black-key" data-key="23"></li>
-                <li className="piano-keys white-key" data-key="24"></li>
-            </ul>
-        </div>
+                  <li className="piano-keys white-key" data-key="13"></li>
+                  <li className="piano-keys black-key" data-key="14"></li>
+                  <li className="piano-keys white-key" data-key="15"></li>
+                  <li className="piano-keys black-key" data-key="16"></li>
+                  <li className="piano-keys white-key" data-key="17"></li>
+                  <li className="piano-keys white-key" data-key="18"></li>
+                  <li className="piano-keys black-key" data-key="19"></li>
+                  <li className="piano-keys white-key" data-key="20"></li>
+                  <li className="piano-keys black-key" data-key="21"></li>
+                  <li className="piano-keys white-key" data-key="22"></li>
+                  <li className="piano-keys black-key" data-key="23"></li>
+                  <li className="piano-keys white-key" data-key="24"></li>
+                </ul>
+              </div> */}
 
-</div> */}
+        {/* </div>
           </Col>
-        </Row>
-       
+        </Row> */}
+
       </Container>
     </>
   )

@@ -11,8 +11,6 @@ import Col from 'react-bootstrap/Col';
 //--- CSS imports.
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
-import './piano.css'
-import { CardBody } from 'react-bootstrap';
 
 function App() {
 
@@ -20,6 +18,7 @@ function App() {
   const [deviceName, setDeviceName] = useState([]);
   const [deviceManufacturer, setDeviceManufacturer] = useState([]);
   const [midiAccess, setMidiAccess] = useState(null);
+  const [displayKeys, setDisplayKeys] = useState(new Set());
 
   //--- Message values.
   const [message, setMessage] = useState([]);
@@ -68,6 +67,10 @@ function App() {
     'Bm': [11, 2, 6]
   };
 
+  const NOTES = [
+    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+  ];
+
   //--- Request MIDI access on component mount.
   useEffect(() => {
     navigator.requestMIDIAccess()
@@ -82,6 +85,16 @@ function App() {
       .catch((err) => console.error("MIDI Access Error:", err));
   }, []);
 
+  //--- Use this to generate a list of keys.
+  const generateKeys = () => {
+    let keys = [];
+    for (let octave = 0; octave < 2; octave++) {
+      for (let note of NOTES) {
+        keys.push(`${note}${octave}`);
+      }
+    }
+    return keys;
+  };
 
   function processMIDIMessage(message) {
 
@@ -110,16 +123,25 @@ function App() {
 
   //--- Handle the note ON event. Add the note to the set and detect the chord.
   function noteOn(note) {
-    setNoteName(getMidiNoteName(note));
-    pressedKeys.add(note);
-    processChord();
+    setDisplayKeys((prev) => new Set(prev).add(note)); // Show the pressed key.
+    setNoteName(getMidiNoteName(note)); // Show the note name.
+    pressedKeys.add(note); // Add to the pressedKeys set.
+    processChord(); // And finally process the chord built so far.
   }
 
   //--- Handle the note OFF event. Remove the note to the set and detect the chord.
   function noteOff(note) {
-    setNoteName("");
-    pressedKeys.delete(note);
-    processChord();
+
+    // Clear the pressed key.
+    setDisplayKeys((prev) => {
+      const newKeys = new Set(prev);
+      newKeys.delete(note);
+      return newKeys;
+    });
+
+    setNoteName(""); // Clear the note name.
+    pressedKeys.delete(note); // Take the key out of the set.
+    processChord(); // And finally process the chord built so far.
   }
 
   function processChord() {
@@ -156,6 +178,13 @@ function App() {
       }
     }
   }
+
+  //--- This helps us map a known note to a key on the keyboard.
+  const midiNoteToKey = (midiNote) => {
+    const note = NOTES[midiNote % 12];
+    const octave = Math.floor(midiNote / 12) - 1;
+    return `${note}${octave}`;
+  };
 
   //--- Extract the note names from the note set.
   function extractChordNotes(noteSet) {
@@ -276,44 +305,25 @@ function App() {
             </Card >
           </Col>
         </Row>
-        {/* <Row>
+        <Row>
           <Col>
-            <div className="card"> */}
-
-        {/* <div className="piano-container">
-                <ul className="piano-keys-list">
-                  <li className="piano-keys white-key" data-key="D" id='C'></li>
-                  <li className="piano-keys black-key" data-key="C#" id='C#'></li>
-                  <li className="piano-keys white-key" data-key="D" id='D'></li>
-                  <li className="piano-keys black-key" data-key="04"></li>
-                  <li className="piano-keys white-key" data-key="05"></li>
-
-                  <li className="piano-keys white-key" data-key="06"></li>
-                  <li className="piano-keys black-key" data-key="07"></li>
-                  <li className="piano-keys white-key" data-key="08"></li>
-                  <li className="piano-keys black-key" data-key="09"></li>
-                  <li className="piano-keys white-key" data-key="10"></li>
-                  <li className="piano-keys black-key" data-key="11"></li>
-                  <li className="piano-keys white-key" data-key="12"></li>
-
-                  <li className="piano-keys white-key" data-key="13"></li>
-                  <li className="piano-keys black-key" data-key="14"></li>
-                  <li className="piano-keys white-key" data-key="15"></li>
-                  <li className="piano-keys black-key" data-key="16"></li>
-                  <li className="piano-keys white-key" data-key="17"></li>
-                  <li className="piano-keys white-key" data-key="18"></li>
-                  <li className="piano-keys black-key" data-key="19"></li>
-                  <li className="piano-keys white-key" data-key="20"></li>
-                  <li className="piano-keys black-key" data-key="21"></li>
-                  <li className="piano-keys white-key" data-key="22"></li>
-                  <li className="piano-keys black-key" data-key="23"></li>
-                  <li className="piano-keys white-key" data-key="24"></li>
-                </ul>
-              </div> */}
-
-        {/* </div>
+            <div className="card">
+              <div className="piano">
+                {generateKeys().map((key) => {
+                  const isPressed = [...displayKeys].map(midiNoteToKey).includes(key);
+                  return (
+                    <div
+                      key={key}
+                      className={`key ${key.includes("#") ? "black" : "white"} ${isPressed ? "active" : ""}`}
+                    >
+                      {key}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </Col>
-        </Row> */}
+        </Row>
 
       </Container>
     </>

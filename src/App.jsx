@@ -7,6 +7,7 @@ import Card from 'react-bootstrap/Card';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import * as Tone from 'tone';
 
 //--- CSS imports.
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -34,6 +35,9 @@ function App() {
   const [chordNotes, setChordNotes] = useState([]);
   const [chordName, setChordName] = useState([]);
   const [chordIntervals, setChordIntervals] = useState([]);
+
+  
+
 
   //--- Create a Set to hold the pressed notes.
   let pressedKeys = new Set();
@@ -127,10 +131,13 @@ function App() {
     setNoteName(getMidiNoteName(note)); // Show the note name.
     pressedKeys.add(note); // Add to the pressedKeys set.
     processChord(); // And finally process the chord built so far.
+    sythesizeNote(note)
   }
-
+ 
   //--- Handle the note OFF event. Remove the note to the set and detect the chord.
   function noteOff(note) {
+
+    //endSythesizeNote(note)
 
     // Clear the pressed key.
     setDisplayKeys((prev) => {
@@ -143,6 +150,75 @@ function App() {
     pressedKeys.delete(note); // Take the key out of the set.
     processChord(); // And finally process the chord built so far.
   }
+
+  function sythesizeNote(note) {
+
+    let theNote = midiNoteToKey(note)
+    //console.log(theNote)
+
+    const synth = new Tone.PolySynth({
+      volume: -8
+    }
+      
+    ).toDestination();
+    const now = Tone.now()
+    synth.triggerAttackRelease(theNote, "8n")
+
+    // const synth = new Tone.PolySynth(Tone.MonoSynth, {
+    //   volume: -8,
+    //   oscillator: {
+    //     type: "square8",
+    //   },
+    //   envelope: {
+    //     attack: 0.05,
+    //     decay: 0.3,
+    //     sustain: 0.4,
+    //     release: 0.8,
+    //   },
+    //   filterEnvelope: {
+    //     attack: 0.001,
+    //     decay: 0.7,
+    //     sustain: 0.1,
+    //     release: 0.8,
+    //     baseFrequency: 300,
+    //     octaves: 4,
+    //   },
+    // }).toDestination();
+
+  }
+
+  function endSythesizeNote(note) {
+
+    let theNote = midiNoteToKey(note)
+    //console.log(theNote)
+
+    const synth = new Tone.Synth().toDestination();
+    const now = Tone.now()
+    synth.triggerRelease(theNote, now)
+
+    // const synth = new Tone.PolySynth(Tone.MonoSynth, {
+    //   volume: -8,
+    //   oscillator: {
+    //     type: "square8",
+    //   },
+    //   envelope: {
+    //     attack: 0.05,
+    //     decay: 0.3,
+    //     sustain: 0.4,
+    //     release: 0.8,
+    //   },
+    //   filterEnvelope: {
+    //     attack: 0.001,
+    //     decay: 0.7,
+    //     sustain: 0.1,
+    //     release: 0.8,
+    //     baseFrequency: 300,
+    //     octaves: 4,
+    //   },
+    // }).toDestination();
+
+  }
+
 
   function processChord() {
 

@@ -260,6 +260,7 @@ function App() {
     const note = NOTES[midiNote % 12];
     const octave = Math.floor(midiNote / 12) - 1;
     return `${note}${octave}`;
+    
   };
 
   //--- Extract the note names from the note set.

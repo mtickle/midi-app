@@ -25,6 +25,13 @@
   transition: background 0.1s;
 }
 
+.black .keyName {
+  border: 1px solid black;
+  color: red;
+  position: absolute;
+  bottom: 1;
+}
+
 .white {
   background: white;
 }

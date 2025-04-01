@@ -7,6 +7,8 @@ import Card from 'react-bootstrap/Card';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Button from 'react-bootstrap/Button';
+import * as Tone from "tone";
 
 //--- CSS imports.
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -71,6 +73,12 @@ function App() {
     "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
   ];
 
+  //--- Kick start audio in the browser if needed.
+  document.querySelector("toneStart")?.addEventListener("click", async () => {
+    await Tone.start();
+    console.log("audio is ready");
+  });
+
   //--- Request MIDI access on component mount.
   useEffect(() => {
     navigator.requestMIDIAccess()
@@ -123,9 +131,11 @@ function App() {
 
   //--- Handle the note ON event. Add the note to the set and detect the chord.
   function noteOn(note) {
+    let fullNoteName = getMidiNoteName(note) + getMidiOcatveName(note)
     setDisplayKeys((prev) => new Set(prev).add(note)); // Show the pressed key.
-    setNoteName(getMidiNoteName(note)); // Show the note name.
+    setNoteName(fullNoteName); // Show the note name.
     pressedKeys.add(note); // Add to the pressedKeys set.
+    synthesizeNote(fullNoteName)
     processChord(); // And finally process the chord built so far.
   }
 
@@ -144,6 +154,36 @@ function App() {
     processChord(); // And finally process the chord built so far.
   }
 
+  function synthesizeNote(note) {
+
+    const synth = new Tone.Synth(
+      {
+				harmonicity: 2.5,
+				oscillator: {
+					type: "fatsawtooth",
+				},
+				envelope: {
+					attack: 0.1,
+					decay: 0.2,
+					sustain: 0.2,
+					release: 0.3,
+				},
+				modulation: {
+					type: "square",
+				},
+				modulationEnvelope: {
+					attack: 0.5,
+					decay: 0.01,
+				},
+			}
+    ).toDestination();
+    const now = Tone.now();
+    // trigger the attack immediately
+    synth.triggerAttack(note, now);
+    // wait one second before triggering the release
+    synth.triggerRelease(now + 1);
+
+  }
 
   function processChord() {
 
@@ -185,7 +225,7 @@ function App() {
     const note = NOTES[midiNote % 12];
     const octave = Math.floor(midiNote / 12) - 1;
     return `${note}${octave}`;
-    
+
   };
 
   //--- Extract the note names from the note set.
@@ -205,6 +245,7 @@ function App() {
     return `${name}`;
   }
 
+  //--- Get the octave name from the MIDI note number.
   function getMidiOcatveName(note) {
     const octave = Math.floor(note / 12) - 1;
     return `${octave}`;
@@ -306,24 +347,37 @@ function App() {
               </Card.Body>
             </Card >
           </Col>
+          <Col>
+            <Card>
+              <Card.Header>Synthesis</Card.Header>
+              <Card.Body>
+
+                <Button id='toneStart' variant="secondary">Initialize</Button>
+
+              </Card.Body>
+            </Card>
+          </Col>
         </Row>
+        <Row><Col>&nbsp;</Col></Row>
         <Row>
           <Col>
-            <div className="card">
-              <div className="piano">
-                {generateKeys().map((key) => {
-                  const isPressed = [...displayKeys].map(midiNoteToKey).includes(key);
-                  return (
-                    <div
-                      key={key}
-                      className={`key ${key.includes("#") ? "black" : "white"} ${isPressed ? "active" : ""}`}
-                    >
-                      <div className='keyName'>{key}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <Card>
+              <Card.Header>Virtual Keyboard</Card.Header>
+              <Card.Body>
+                <div className="piano">
+                  {generateKeys().map((key) => {
+                    const isPressed = [...displayKeys].map(midiNoteToKey).includes(key);
+                    return (
+                      <div
+                        key={key}
+                        className={`key ${key.includes("#") ? "black" : "white"} ${isPressed ? "active" : ""}`}
+                      >
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card.Body>
+            </Card>
           </Col>
         </Row>
 

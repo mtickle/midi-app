@@ -41,6 +41,9 @@ function App() {
 
   //--- Synthesis values.
   const [attack, setAttack] = useState(0);
+  const [decay, setDecay] = useState(0);
+  const [sustain, setSustain] = useState(0);
+  const [release, setRelease] = useState(0);
 
   //--- Create a Set to hold the pressed notes.
   let pressedKeys = new Set();
@@ -358,19 +361,54 @@ function App() {
               <Card.Header>Synthesis</Card.Header>
               <Card.Body>
 
-                {/* <Button id='toneStart' variant="secondary">Initialize</Button> */}
-
                 <InputGroup className="mb-3">
                   <InputGroup.Text className="w-50" id="basic-addon1">Attack: </InputGroup.Text>
                   <Form.Control value={attack} onChange={setAttack} readOnly />
-                  <Form.Range 
-                  value={attack}
-                  onChange={e => setAttack(e.target.value)}
-                  min={0}
-                  max={1}
-                  step={.1} 
+                  <Form.Range
+                    value={attack}
+                    onChange={e => setAttack(e.target.value)}
+                    min={0}
+                    max={1}
+                    step={.1}
                   />
                 </InputGroup>
+
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Decay: </InputGroup.Text>
+                  <Form.Control value={decay} onChange={setDecay} readOnly />
+                  <Form.Range
+                    value={decay}
+                    onChange={e => setDecay(e.target.value)}
+                    min={0}
+                    max={1}
+                    step={.1}
+                  />
+                </InputGroup>
+
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Sustain: </InputGroup.Text>
+                  <Form.Control value={sustain} onChange={setSustain} readOnly />
+                  <Form.Range
+                    value={sustain}
+                    onChange={e => setSustain(e.target.value)}
+                    min={0}
+                    max={1}
+                    step={.1}
+                  />
+                </InputGroup>
+
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Release: </InputGroup.Text>
+                  <Form.Control value={release} onChange={setRelease} readOnly />
+                  <Form.Range
+                    value={release}
+                    onChange={e => setRelease(e.target.value)}
+                    min={0}
+                    max={1}
+                    step={.1}
+                  />
+                </InputGroup>
+
               </Card.Body>
             </Card>
           </Col>

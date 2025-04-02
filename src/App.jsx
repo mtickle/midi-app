@@ -8,6 +8,8 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+// import RangeSlider from 'react-bootstrap-range-slider';
+import FormRange from 'react-bootstrap/FormRange'
 import * as Tone from "tone";
 
 //--- CSS imports.
@@ -36,6 +38,9 @@ function App() {
   const [chordNotes, setChordNotes] = useState([]);
   const [chordName, setChordName] = useState([]);
   const [chordIntervals, setChordIntervals] = useState([]);
+
+  //--- Synthesis values.
+  const [attack, setAttack] = useState(0);
 
   //--- Create a Set to hold the pressed notes.
   let pressedKeys = new Set();
@@ -156,26 +161,27 @@ function App() {
 
   function synthesizeNote(note) {
 
+    //--- Get the attack value?
     const synth = new Tone.Synth(
       {
-				harmonicity: 2.5,
-				oscillator: {
-					type: "fatsawtooth",
-				},
-				envelope: {
-					attack: 0.1,
-					decay: 0.2,
-					sustain: 0.2,
-					release: 0.3,
-				},
-				modulation: {
-					type: "square",
-				},
-				modulationEnvelope: {
-					attack: 0.5,
-					decay: 0.01,
-				},
-			}
+        harmonicity: 2.5,
+        oscillator: {
+          type: "fatsawtooth",
+        },
+        envelope: {
+          attack: 0.1,
+          decay: 0.2,
+          sustain: 0.2,
+          release: 0.3,
+        },
+        modulation: {
+          type: "square",
+        },
+        modulationEnvelope: {
+          attack: 0.5,
+          decay: 0.01,
+        },
+      }
     ).toDestination();
     const now = Tone.now();
     // trigger the attack immediately
@@ -352,8 +358,19 @@ function App() {
               <Card.Header>Synthesis</Card.Header>
               <Card.Body>
 
-                <Button id='toneStart' variant="secondary">Initialize</Button>
+                {/* <Button id='toneStart' variant="secondary">Initialize</Button> */}
 
+                <InputGroup className="mb-3">
+                  <InputGroup.Text className="w-50" id="basic-addon1">Attack: </InputGroup.Text>
+                  <Form.Control value={attack} onChange={setAttack} readOnly />
+                  <Form.Range 
+                  value={attack}
+                  onChange={e => setAttack(e.target.value)}
+                  min={0}
+                  max={1}
+                  step={.1} 
+                  />
+                </InputGroup>
               </Card.Body>
             </Card>
           </Col>

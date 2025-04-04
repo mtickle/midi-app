@@ -143,7 +143,7 @@ function App() {
     setDisplayKeys((prev) => new Set(prev).add(note)); // Show the pressed key.
     setNoteName(fullNoteName); // Show the note name.
     pressedKeys.add(note); // Add to the pressedKeys set.
-    synthesizeNote(fullNoteName)
+    // synthesizeNote(fullNoteName)
     processChord(); // And finally process the chord built so far.
   }
 
@@ -162,37 +162,6 @@ function App() {
     processChord(); // And finally process the chord built so far.
   }
 
-  function synthesizeNote(note) {
-
-    //--- Get the attack value?
-    const synth = new Tone.Synth(
-      {
-        harmonicity: 2.5,
-        oscillator: {
-          type: "fatsawtooth",
-        },
-        envelope: {
-          attack: 0.1,
-          decay: 0.2,
-          sustain: 0.2,
-          release: 0.3,
-        },
-        modulation: {
-          type: "square",
-        },
-        modulationEnvelope: {
-          attack: 0.5,
-          decay: 0.01,
-        },
-      }
-    ).toDestination();
-    const now = Tone.now();
-    // trigger the attack immediately
-    synth.triggerAttack(note, now);
-    // wait one second before triggering the release
-    synth.triggerRelease(now + 1);
-
-  }
 
   function processChord() {
 
@@ -355,63 +324,7 @@ function App() {
 
               </Card.Body>
             </Card >
-          </Col>
-          <Col>
-            <Card>
-              <Card.Header>Synthesis</Card.Header>
-              <Card.Body>
-
-                <InputGroup className="mb-3">
-                  <InputGroup.Text className="w-50" id="basic-addon1">Attack: </InputGroup.Text>
-                  <Form.Control value={attack} onChange={setAttack} readOnly />
-                  <Form.Range
-                    value={attack}
-                    onChange={e => setAttack(e.target.value)}
-                    min={0}
-                    max={1}
-                    step={.1}
-                  />
-                </InputGroup>
-
-                <InputGroup className="mb-3">
-                  <InputGroup.Text className="w-50" id="basic-addon1">Decay: </InputGroup.Text>
-                  <Form.Control value={decay} onChange={setDecay} readOnly />
-                  <Form.Range
-                    value={decay}
-                    onChange={e => setDecay(e.target.value)}
-                    min={0}
-                    max={1}
-                    step={.1}
-                  />
-                </InputGroup>
-
-                <InputGroup className="mb-3">
-                  <InputGroup.Text className="w-50" id="basic-addon1">Sustain: </InputGroup.Text>
-                  <Form.Control value={sustain} onChange={setSustain} readOnly />
-                  <Form.Range
-                    value={sustain}
-                    onChange={e => setSustain(e.target.value)}
-                    min={0}
-                    max={1}
-                    step={.1}
-                  />
-                </InputGroup>
-
-                <InputGroup className="mb-3">
-                  <InputGroup.Text className="w-50" id="basic-addon1">Release: </InputGroup.Text>
-                  <Form.Control value={release} onChange={setRelease} readOnly />
-                  <Form.Range
-                    value={release}
-                    onChange={e => setRelease(e.target.value)}
-                    min={0}
-                    max={1}
-                    step={.1}
-                  />
-                </InputGroup>
-
-              </Card.Body>
-            </Card>
-          </Col>
+          </Col>         
         </Row>
         <Row><Col>&nbsp;</Col></Row>
         <Row>
